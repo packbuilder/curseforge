@@ -4,7 +4,7 @@ require_relative 'lib/curseforge/version'
 
 Gem::Specification.new do |spec|
   spec.name = 'curseforge'
-  spec.version = Curseforge::VERSION
+  spec.version = CurseForge::VERSION
   spec.authors = ['Goob-Hub', 'Dylan Hackworth']
   spec.email = ['theg00bdev@gmail.com', 'dylan.hackworth@hey.com']
 

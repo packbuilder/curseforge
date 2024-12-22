@@ -46,7 +46,7 @@ class CurseForge
   #  file = File.open('manifest.json')
   #  json = JSON.parse(file.read)
   #  file.close
-  #  client = Curseforge.new('token')
+  #  client = CurseForge.new('token')
   #  mods = client.get_mods_from_manifest(json)
   def get_mods_from_manifest(json)
     get_mods(json['files'].map(&:projectID))
