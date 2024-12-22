@@ -6,6 +6,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    diff-lcs (1.5.1)
     faraday (2.12.2)
       faraday-net_http (>= 2.0, < 3.5)
       json
@@ -17,7 +18,21 @@ GEM
     net-http (0.6.0)
       uri
     rake (13.2.1)
+    rspec (3.13.0)
+      rspec-core (~> 3.13.0)
+      rspec-expectations (~> 3.13.0)
+      rspec-mocks (~> 3.13.0)
+    rspec-core (3.13.2)
+      rspec-support (~> 3.13.0)
+    rspec-expectations (3.13.3)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.13.0)
+    rspec-mocks (3.13.2)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.13.0)
+    rspec-support (3.13.2)
     uri (1.0.2)
+    yard (0.9.37)
 
 PLATFORMS
   ruby
@@ -27,6 +42,8 @@ DEPENDENCIES
   curseforge!
   faraday (~> 2.12)
   rake (~> 13.0)
+  rspec (~> 3.13)
+  yard (~> 0.9.37)
 
 BUNDLED WITH
    2.5.22
