@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     curseforge (0.1.0)
+      faraday (~> 2.12)
 
 GEM
   remote: https://rubygems.org/

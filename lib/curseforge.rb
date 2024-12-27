@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'faraday'
+require 'json'
 
 # CurseForge API Wrapper
 # by PackBuilder.io
@@ -32,7 +33,7 @@ class CurseForge
     post_request('/v1/mods', body: {
                    modIds: mods_ids,
                    filterPCOnly: filter_pc_only
-                 }, headers: { 'Content-Type' => 'application/json' })
+                }.to_json, headers: { 'Content-Type' => 'application/json' })["data"]
   end
 
   # @param [Hash] json
@@ -84,13 +85,14 @@ class CurseForge
   private
 
   def req(method, path, body: nil, headers: nil)
-    # TODO: actual error handling
-    @api.send(method, path, body, headers).body
+    @api.send(method, path, body, headers)
   end
 
   %i[get post put delete].each do |method|
     define_method(:"#{method}_request") do |path, body: nil, headers: nil|
-      req(method, path, body: body, headers: headers)
+      resp = req(method, path, body: body, headers: headers)
+
+      JSON.parse(resp.body)
     end
   end
 end
