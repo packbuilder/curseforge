@@ -6,34 +6,22 @@ require 'json'
 # CurseForge API Wrapper
 # by PackBuilder.io
 class CurseForge
-  class Error < StandardError
-    attr_reader :response
-
-    def initialize(response, error = nil)
-      if error
-        super(error.message)
-      else
-        super("Received #{response.status} status code")
-      end
-
-      @response = response
-    end
-  end
-
   require_relative 'curseforge/version'
+  require_relative 'curseforge/error'
 
-  def initialize(token)
+  def initialize(token, **options)
     @token = token
-    @api = Faraday.new(
-      url: 'https://api.curseforge.com',
-      headers: { 'x-api-key' => @token }
-    )
+
+    options[:url] ||= 'https://api.curseforge.com'
+    options[:headers] ||= {}
+    options[:headers]["x-api-key"] = @token
+    @api = Faraday.new(options)
   end
 
   # @param [Integer] mod_id
   # @raise [Faraday::Error]
   # @return [Hash]
-  # @see https://docs.curseforge.com/rest-api/#schemaget%20mod%20response
+  # @see https://docs.curseforge.com/rest-api/#get-mod
   def get_mod(mod_id)
     req(:get, "/v1/mods/#{mod_id}")
   end
@@ -42,7 +30,7 @@ class CurseForge
   # @param [Boolean] filter_pc_only
   # @raise [Faraday::Error]
   # @return [Hash]
-  # @see https://docs.curseforge.com/rest-api/#schemaget%20mods%20response
+  # @see https://docs.curseforge.com/rest-api/#get-mods
   def get_mods(*mods_ids, filter_pc_only: true)
     req(:post, '/v1/mods', body: {
                    modIds: mods_ids,
@@ -53,7 +41,7 @@ class CurseForge
   # @param [Hash] json
   # @raise [Faraday::Error]
   # @return [Hash]
-  # @see https://docs.curseforge.com/rest-api/#schemaget%20mods%20response
+  # @see https://docs.curseforge.com/rest-api/#get-mods
   # @example
   #  require 'json'
   #  require 'curseforge'
@@ -64,7 +52,7 @@ class CurseForge
   #  client = CurseForge.new('token')
   #  mods = client.get_mods_from_manifest(json)
   def get_mods_from_manifest(json)
-    get_mods(json['files'].map(&:projectID))
+    get_mods(*json['files'].map { |f| f['projectID'] })
   end
 
   # Filters mods based on the given query parameters.
@@ -98,12 +86,12 @@ class CurseForge
 
   private
 
-  def req(method, path, body: nil, headers: nil)
-    resp = @api.send(method, path, body, headers)
-    raise Error.new(resp) unless resp.success?
+    def req(method, path, body: nil, headers: nil)
+      resp = @api.send(method, path, body, headers)
+      raise CurseForge::Error.new(resp, "received #{resp.status}") unless resp.success?
 
-    JSON.parse(resp.body)
-  rescue StandardError => e
-    raise Error.new(resp, e)
-  end
+      JSON.parse(resp.body)
+    rescue JSON::ParserError => e
+      raise CurseForge::Error.new(resp, e.message)
+    end
 end
