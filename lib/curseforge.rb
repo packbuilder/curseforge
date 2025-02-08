@@ -6,6 +6,20 @@ require 'json'
 # CurseForge API Wrapper
 # by PackBuilder.io
 class CurseForge
+  class Error < StandardError
+    attr_reader :response
+
+    def initialize(response, error = nil)
+      if error
+        super(error.message)
+      else
+        super("Received #{response.status} status code")
+      end
+
+      @response = response
+    end
+  end
+
   require_relative 'curseforge/version'
 
   def initialize(token)
@@ -21,7 +35,7 @@ class CurseForge
   # @return [Hash]
   # @see https://docs.curseforge.com/rest-api/#schemaget%20mod%20response
   def get_mod(mod_id)
-    get_request("/v1/mods/#{mod_id}")
+    req(:get, "/v1/mods/#{mod_id}")
   end
 
   # @param [Array<Integer>] mod_ids
@@ -30,7 +44,7 @@ class CurseForge
   # @return [Hash]
   # @see https://docs.curseforge.com/rest-api/#schemaget%20mods%20response
   def get_mods(*mods_ids, filter_pc_only: true)
-    post_request('/v1/mods', body: {
+    req(:post, '/v1/mods', body: {
                    modIds: mods_ids,
                    filterPCOnly: filter_pc_only
                 }.to_json, headers: { 'Content-Type' => 'application/json' })["data"]
@@ -79,20 +93,17 @@ class CurseForge
   # @see https://docs.curseforge.com/rest-api/#schemasearch%20mods%20response
   def search_mods(game_id, **query)
     query[:gameId] = game_id
-    get_request('/v1/mods/search', body: query)
+    req(:get, '/v1/mods/search', body: query)
   end
 
   private
 
   def req(method, path, body: nil, headers: nil)
-    @api.send(method, path, body, headers)
-  end
+    resp = @api.send(method, path, body, headers)
+    raise Error.new(resp) unless resp.success?
 
-  %i[get post put delete].each do |method|
-    define_method(:"#{method}_request") do |path, body: nil, headers: nil|
-      resp = req(method, path, body: body, headers: headers)
-
-      JSON.parse(resp.body)
-    end
+    JSON.parse(resp.body)
+  rescue StandardError => e
+    raise Error.new(resp, e)
   end
 end
